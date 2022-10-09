@@ -137,7 +137,25 @@ especially the sections "Technical instructions for LaTeX" and "Manuscript
 composition". Please contact Daniel Nüst, `daniel.nuest@uni-muenster.de`, with
 any problems.
 
+
 # Input Data
+
+```{r}
+library(raster)
+
+
+require('gdalUtilities')
+
+write_map <- function(x, path, name)
+{
+  
+  raster::writeRaster(x, file.path(path,paste0(name,".tif")))
+  gdalUtilities::gdal_translate(src_dataset =  file.path(path,paste0(name,".tif")),
+                                dst_dataset =  file.path(path,paste0(name,".map")), of =  "PCRaster")
+  unlink(file.path(path,paste0(name,".tif")))
+}
+```
+
 
 ## Forcing Data
 
@@ -147,6 +165,20 @@ Alle Daten im Fullswof input format, müssen für andere Modelle entsprechend ü
 - rainfall - constant intensity and duration as *.csv file
 - soil parameters / infiltration rate, texture
 - plot boundary conditions
+
+```{r}
+dgm_xyz <- read.table("models/FullSWOF/Inputs/2021-07-20_sfm_ueberstau1_nachher_trafo_Plotinneres_raster_Mean_0.10_redu_add.txt", sep = " ", header = FALSE, col.names = c("X","Y", "Z"))
+dgm <- raster::rasterFromXYZ(dgm_xyz )
+
+raster::plot(dgm)
+raster::writeRaster(dgm, filename = "models/E3D/dgm.tif")
+
+gdal_translate(src_dataset =  "models/E3D/dgm.tif",
+               dst_dataset =  "models/E3D/dgm.map", of =  "PCRaster")
+
+write_map(dgm, "models/E3D", "dgm_lis")
+```
+
 
 ## Validation / calibration data
 
@@ -187,6 +219,13 @@ Anne legt lauffähigen openLisem Ordner im E4D Projektordner ab - analog Fullswo
 
 Anne legt lauffähigen Lisem Ordner im E4D Projektordner ab - analog Fullswof.
 Checken, wie das Script (aktuell per "Pfeil" gestartet) von Kommandozeile gestartet wird
+
+Version 0.2.4 https://sourceforge.net/projects/lisem/files/LISEM%20%28beta%20release%20new%20software%29/Portable/lisem_0.2.4.zip/download
+
+```{r}
+
+```
+
 
 ## Aktuell erkannte Herausforderungen
  
