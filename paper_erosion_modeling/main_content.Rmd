@@ -146,18 +146,6 @@ any problems.
 
 ```{r}
 library(raster)
-
-
-require('gdalUtilities')
-
-write_map <- function(x, path, name)
-{
-  
-  raster::writeRaster(x, file.path(path,paste0(name,".tif")))
-  gdalUtilities::gdal_translate(src_dataset =  file.path(path,paste0(name,".tif")),
-                                dst_dataset =  file.path(path,paste0(name,".map")), of =  "PCRaster")
-  unlink(file.path(path,paste0(name,".tif")))
-}
 ```
 
 
@@ -175,12 +163,8 @@ dgm_xyz <- read.table("models/FullSWOF/Inputs/2021-07-20_sfm_ueberstau1_nachher_
 dgm <- raster::rasterFromXYZ(dgm_xyz )
 
 raster::plot(dgm)
-raster::writeRaster(dgm, filename = "models/E3D/dgm.tif")
+raster::writeRaster(dgm, filename = "models/Lisem/wd/dgm.tif")
 
-gdal_translate(src_dataset =  "models/E3D/dgm.tif",
-               dst_dataset =  "models/E3D/dgm.map", of =  "PCRaster")
-
-write_map(dgm, "models/E3D", "dgm_lis")
 ```
 
 

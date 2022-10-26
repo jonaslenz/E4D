@@ -1,0 +1,272 @@
+//find help by:
+//https://www.youtube.com/watch?v=jz0_myzyIB4&t=2s
+//https://www.youtube.com/watch?v=6i_dndwVaIQ&t=1056
+//Author (origin version): Bastian van den Bout
+//Editor: Anne Bienert
+
+//script to model
+
+
+double GetSettlingVelocity(double diameter) //input in meters
+{
+    if(diameter < 1e-4)
+    {
+        //use stokes settling velocity
+        return 2.0*(2650.0-1000.0)*9.80*pow(diameter/2.0, 2.0)/(9.0*0.001);
+    }else
+    {
+        //use settling velocity form Zanke (1977)
+        float dm = diameter* 1000.0;
+        return 10.0 *(sqrt(1.0 + 0.01 *((2650.0-1000.0)/1000.0)* 9.81 *dm*dm*dm )-1.0)/(dm);   
+    }
+}
+
+Map TransportCapacity(Map height, Map vel, float d50, Map slope)
+{
+    d50 = d50/1000000.0;
+    
+    //erosion model as used by LISEM from Govers et al.
+    
+    float cg = pow((d50+5.0f)/0.32f, -0.6f);
+    float dg = pow((d50+5.0f)/300.0f, 0.25f);
+
+        //Calc transport capacity
+    Map omega = 100.0f* vel*sin(atan(max(0.001f,slope)));
+
+    // V in cm/s in this formula assuming grad is SINE
+    float omegacrit = 0.4f;
+
+    // critical unit streampower in cm/s
+    Map TC = max(0.0f,min(865.0, 2650.0f * cg * pow(max(omega * 0.0 + 0.0f, omega - omegacrit), omega * 0.0 + dg)));
+    TC = Cover(TC,0.0);
+    
+    return TC;    
+}
+
+
+
+void main()
+{
+    Map dem = dem.map;
+    
+    Map whinitial = dem.map * 0.0; //empty map
+    Map manning = manning.map; //manning surface roughness coefficient
+    
+    //Soil parameters
+    
+    //wetting front 
+    Map WF = dem.map * 0.0 +0.1; //some initial water depth for the green and ampt model
+    
+    Map Psi1 = psi1.map; //matric suction
+    Map Psi2 = psi2.map;
+    Map Thetai1 = thetai1.map; //water contect (0-1)
+    Map Thetai2 = thetai2.map;
+    Map Thetas1 = thetas1.map; // porosity (0-1)
+    Map Thetas2 = thetas2.map;
+    Map Ksat1 = ksat1.map;
+    Map Ksat2 = ksat2.map;
+    Map SD1 =soildep1.map;
+    Map SD2 = soildep2.map;
+    
+         
+    
+    //define constant rainfall -> 38 mm/h and generate a rain.tif
+    rain.tif = dem.map * 0.0 + 38.0; 
+       
+    //flow properties (wh, ux, uy), all values set to "zero", starting with a try plot
+    array<Map> flowprops = {whinitial, whinitial * 0.0, whinitial *0.0};
+    
+    //infiltration properties (wetting front depth, water height)
+    array<Map> infil = {WF, whinitial};
+    
+    //add layers to interface
+    UILayer l1 = AddViewLayer( whinitial, "water height");
+    //UILayer l2 = AddViewLayer( whinitial, "infiltration");
+    //UILayer l3 = AddViewLayer( whinitial, "velocity");
+    //UILayer l4 = AddViewLayer( whinitial, "rain");
+    UILayer l5 = AddViewLayer( whinitial, "erosion");
+    UILayer l6 = AddViewLayer( whinitial, "sed");
+    
+    uint counter=0;
+    
+    //settling velocity requires d50 grain size
+    float d50 = 0.00005;
+    float settlingv = GetSettlingVelocity(d50);
+    float cellsize = 0.05;
+    
+    Map slope = Slope(dem.map);
+    
+    Map rain = dem * 0.0;
+    Map raintotal = dem * 0.0;
+    
+    Map Sed = dem * 0.0;
+    Map demchangetotal = dem * 0.0;
+    float Coh = 5;  
+    
+    //do time loop
+    //40 min rainfall experiment -> timestep each 5 sek -> i = 480
+    float timestep = 5.0; // seconds
+    int duration_experiment_min = 40; // in minutes
+    int i_duration = duration_experiment_min * 60.0/timestep;
+    
+    Print(i_duration);
+    
+    for(int i = 0; i<i_duration; i++)
+    {
+        //timestep number
+        Print(ToString(i));
+        
+        int count = 0;
+        
+        
+        double time = (i*timestep)/(3600.0);// i=1 -> 5/3600 = 0.0013888
+        float begin_overflow_minutes = 25;
+        float end_overflow_minutes = 38;
+        
+        int begin_overflow_sek = (begin_overflow_minutes*60)/timestep;
+        int end_overflow_sek = (end_overflow_minutes*60)/timestep;
+        
+        Print(begin_overflow_sek);
+        Print(end_overflow_sek);
+        
+         if(i<begin_overflow_sek) //time before overflow is 24 minutes -> (24min*60)/5Sek = 288
+         { 
+              rain = (timestep)*rain.tif/(1000.0*3600.0); 
+              //ReplaceViewLayer(l4, rain);
+              //conversion to m/second: (timestep*i)*rain  -> (timestep*i): cumulated water(rain) 
+              //OR 
+              //conversion to m/second: (timestep)*rain -> water(rain) for one/each timestep ?                   
+         }
+         if(i>=begin_overflow_sek && i<end_overflow_sek) //overflow, the uppermost row spends water
+         {                  
+             int overflow_intensity = 7000; // is this the correct value??? 7000 mm/h -> intensity calibrated with the collected water 
+             rain = (timestep)*rain.tif/(1000.0*3600.0); //conversion to m/second * (timestep*i)        
+             
+             for(int c=0; c < rain.Cols(); c++)
+             {
+                 //for(int r=1; r < 2; r++)                 
+                 for(int r=0; r < 1; r++)
+                 {
+                    rain[r,c] = overflow_intensity/(1000.0*3600.0);    
+                    Print(rain[r,c]);
+                 }             
+            } 
+         }
+         if(i>=end_overflow_sek) //simulation without water for runoff of the water which stands on the plot
+         {
+             rain = dem.map * 0.0;
+         }
+         
+         
+        raintotal += rain;
+        
+        // adding rain to waterheight     
+        flowprops[0] = flowprops[0]+rain; 
+          
+        //altering infil[1] 
+        infil[1]=flowprops[0];
+        
+        //infiltration
+        //Is there a two-Layer Green and Ampt infiltration?
+        //infil = GreenAndAmpt(infil[0], infil[1], SD1,Ksat1,Thetas1, Thetai1, Psi1, timestep);
+         
+        //altering flowprops[0] with infil[1] after infiltration modeling
+        flowprops[0] = infil[1]; 
+              
+        flowprops=FlowDynamic(dem, manning, flowprops[0], flowprops[1],flowprops[2],timestep);
+          
+        //Calculation of the spatial velocity using u and v: flowprop[1] -> u; flowprop[2] -> v
+        Map velo = sqrt(flowprops[1]* flowprops[1]+flowprops[2]* flowprops[2]);
+        
+        Map vol = flowprops[0] * cellsize * cellsize;
+        Map conc = Sed / max(0.0000001,vol);
+        
+        
+        Map TC = TransportCapacity(flowprops[0],velo,d50,slope);
+        
+         //erosion efficiency
+         Map ErosiveEfficiency = min(1.0f, 0.79f*exp(-0.85f*Coh));
+         
+        
+        Map maxTC = max(TC - conc,0.0f);
+        
+        // positive difference: TC deficit becomes detachment (positive)
+        Map minTC = min(TC - conc,0.0f);
+
+        //deposition based on settling velocity
+        Map TransportFactor = (1.0f-exp(-timestep*settlingv/max(0.0001f,flowprops[0]))) * vol;
+        
+        Map deposition = TransportFactor * minTC;        
+        deposition = min(Sed,min(MapIf(deposition << 0.0, - deposition,deposition),-minTC *vol));
+
+        TransportFactor = timestep*settlingv * cellsize * cellsize;
+        Map detachment = ErosiveEfficiency* maxTC * TransportFactor;
+        detachment = max(0.0f,min(detachment,vol * maxTC));
+        
+        //erosion is negative
+        Map eros = -detachment + deposition;
+        
+        //convert kg of erosion over gridcell to meter elevation change to dem. 1800 is assumed density of soil structure for fresh sediment deposits.
+        Map demchange = (eros/(cellsize*cellsize))*(1.0f/1800.0f);
+        
+        //alter dem
+        dem = dem + demchange;
+        demchangetotal += demchange;
+        
+        //add erosion/deposition to sediment in the water
+        Sed = Sed - eros;
+        
+        //advecction of sediment with water
+        Sed=FlowDynamicSuspendedTransport(Sed, dem, manning, flowprops[0], flowprops[1],flowprops[2],timestep);
+        
+        //Save maps for each timestep 
+        Print("save maps");
+        //string water_height = "_waterheight.map"; 
+        //string water_height_ID = counter+string(water_height);    
+        //SaveMap(flowprops[0], water_height_ID);
+        
+        //string velocity = "_velocity.map"; 
+        //string velocity_ID = counter+string(velocity);    
+        //SaveMap(velo, velocity_ID);
+        
+        //string erosion = "_erosion.map"; 
+        //string erosion_ID = counter+string(erosion);    
+        //SaveMap(eros, erosion_ID);
+         
+        if( i % 25 == 0)
+        {
+        //hier einen counter im Namen einbauen
+            string name = FormatUInt(i);
+          string dem = "_dem.map"; 
+          string dem_ID = name+string(dem);  
+          SaveMap(demchangetotal, dem_ID);
+            velx.tif = flowprops[1];
+            vely.tif = flowprops[2];
+            dem.tif = demchangetotal;
+            
+             //replay data in map viewer
+            ReplaceViewLayer(l1, flowprops[0]);
+            //ReplaceViewLayer(l2, infil[0]);
+            //ReplaceViewLayer(l3, velo);
+            //ReplaceViewLayer(l4, raintotal);
+            ReplaceViewLayer(l5, demchangetotal);
+            ReplaceViewLayer(l6, Sed);          
+        }            
+        
+        //counter for map_iD
+        counter++;        
+    }
+    
+    
+    
+}
+
+
+ 
+                 
+        //save the file      
+       // test.tif = dem;
+       // water.tif = flowprops[0];
+        //rain1.tif = rain;    
+        //velocity.tif = sqrt(flowprops[1]* flowprops[1]+flowprops[2]* flowprops[2]);
+        
