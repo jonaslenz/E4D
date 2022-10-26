@@ -163,6 +163,7 @@ dgm_xyz <- read.table("models/FullSWOF/Inputs/2021-07-20_sfm_ueberstau1_nachher_
 dgm <- raster::rasterFromXYZ(dgm_xyz )
 
 raster::plot(dgm)
+dir.create("models/Lisem/wd")
 raster::writeRaster(dgm, filename = "models/Lisem/wd/dgm.tif")
 
 ```
@@ -215,17 +216,18 @@ Version 0.2.4 https://sourceforge.net/projects/lisem/files/LISEM%20%28beta%20rel
 ## get instalation path to LISEM
 
 system2("D:\\Projekte\\E4D\\paper_erosion_modeling\\models\\Lisem\\bin\\lisem_app.exe",
-'-x -r "D:\\Projekte\\E4D\\paper_erosion_modeling\\models\\Lisem\\Lisem_skript\\rainfall_200721_new.script" -d "D:\\Projekte\\E4D\\paper_erosion_modeling\\models\\Lisem\\maps_05\\"', stdout = FALSE
+'-x -r "D:\\Projekte\\E4D\\paper_erosion_modeling\\models\\Lisem\\Lisem_skript\\rainfall_sim_200721.script" -d "D:\\Projekte\\E4D\\paper_erosion_modeling\\models\\Lisem\\wd\\"', stdout = FALSE
 )
-
 
 ```
 
 ```{r}
-setwd("D:\\Projekte\\E4D\\paper_erosion_modeling\\models\\Lisem\\maps_05\\")
+setwd("D:\\Projekte\\E4D\\paper_erosion_modeling\\models\\Lisem\\wd\\")
 lisem_results <- list.files()
 
 velx <- raster::stack(lisem_results[grepl("velx", lisem_results)])
+vely <- raster::stack(lisem_results[grepl("vely", lisem_results)])
+dem <- raster::stack(lisem_results[grepl("dem", lisem_results)])
 ```
 
 ```{r}
@@ -235,6 +237,12 @@ for(z in names(velx))
 }
 ```
 
+```{r}
+for(z in names(dem))
+{
+  raster::plot(dem[[z]], main = z)
+}
+```
 ## Aktuell erkannte Herausforderungen
  
  - alles in Code umsetzen
