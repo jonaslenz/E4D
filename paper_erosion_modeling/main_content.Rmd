@@ -215,6 +215,7 @@ Anne legt lauffähigen fullswof Ordner ab:
 Anne legt lauffähigen openLisem Ordner im E4D Projektordner ab - analog Fullswof.
 Übersetzung der Fullswof Input-Daten in LISEM Daten (maps, bzw. TIFs) sollte gecodet werden (z.B. mit R-library raster/rgdal). Aktuell über LAZ-Dateien mit proprietärer Software -> Lizenzprobleme und Geschichte.
 
+
 ## LISEM - Bastians Version
 
 Anne legt lauffähigen Lisem Ordner im E4D Projektordner ab - analog Fullswof.
@@ -222,10 +223,14 @@ Checken, wie das Script (aktuell per "Pfeil" gestartet) von Kommandozeile gestar
 
 Version 0.2.4 https://sourceforge.net/projects/lisem/files/LISEM%20%28beta%20release%20new%20software%29/Portable/lisem_0.2.4.zip/download
 
-```{r}
+```{r run_LISEM, echo=FALSE}
+## get instalation path to LISEM
+
+system2("D:\\Projekte\\E4D\\paper_erosion_modeling\\models\\Lisem\\bin\\lisem_app.exe",
+'-x -r "D:\\Projekte\\E4D\\paper_erosion_modeling\\models\\Lisem\\Lisem_skript\\rainfall_sim_200721.script" -d "D:\\Projekte\\E4D\\paper_erosion_modeling\\models\\Lisem\\maps__05cm\\"'
+)
 
 ```
-
 
 ## Aktuell erkannte Herausforderungen
  
