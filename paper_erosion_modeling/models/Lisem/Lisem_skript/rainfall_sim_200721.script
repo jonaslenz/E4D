@@ -2,7 +2,7 @@
 //https://www.youtube.com/watch?v=jz0_myzyIB4&t=2s
 //https://www.youtube.com/watch?v=6i_dndwVaIQ&t=1056
 //Author (origin version): Bastian van den Bout
-//Editor: Anne Bienert
+//Editor: Anne Bienert, Jonas Lenz
 
 //script to model
 
@@ -47,31 +47,29 @@ Map TransportCapacity(Map height, Map vel, float d50, Map slope)
 
 void main()
 {
-    Map dem = dem.map;
+    Map dem = dgm.tif;
     
-    Map whinitial = dem.map * 0.0; //empty map
-    Map manning = manning.map; //manning surface roughness coefficient
+    Map whinitial = dem * 0.0; //empty map
+    Map manning = dem * 0.0 + 0.026; //manning surface roughness coefficient
     
     //Soil parameters
     
     //wetting front 
-    Map WF = dem.map * 0.0 +0.1; //some initial water depth for the green and ampt model
+    Map WF = dem * 0.0 +0.001; //some initial water depth for the green and ampt model
     
-    Map Psi1 = psi1.map; //matric suction
-    Map Psi2 = psi2.map;
-    Map Thetai1 = thetai1.map; //water contect (0-1)
-    Map Thetai2 = thetai2.map;
-    Map Thetas1 = thetas1.map; // porosity (0-1)
-    Map Thetas2 = thetas2.map;
-    Map Ksat1 = ksat1.map;
-    Map Ksat2 = ksat2.map;
-    Map SD1 =soildep1.map;
-    Map SD2 = soildep2.map;
-    
-         
+    Map Psi1 = dem * 0.0 + 0.167; //matric suction
+    Map Psi2 = dem * 0.0 + 0.167;
+    Map Thetai1 = dem * 0.0 + 0.267; //water contect (0-1)
+    Map Thetai2 = dem * 0.0 + 0.267;
+    Map Thetas1 = dem * 0.0 + 0.35; // porosity (0-1)
+    Map Thetas2 = dem * 0.0 + 0.35;
+    Map Ksat1 = dem * 0.0 + 30.0;
+    Map Ksat2 = dem * 0.0 + 20.0;
+    Map SD1 = dem * 0.0 + 300;
+    Map SD2 = dem * 0.0 + 1000;
     
     //define constant rainfall -> 38 mm/h and generate a rain.tif
-    rain.tif = dem.map * 0.0 + 38.0; 
+    rain.tif = dem * 0.0 + 38.0; 
        
     //flow properties (wh, ux, uy), all values set to "zero", starting with a try plot
     array<Map> flowprops = {whinitial, whinitial * 0.0, whinitial *0.0};
@@ -80,12 +78,12 @@ void main()
     array<Map> infil = {WF, whinitial};
     
     //add layers to interface
-    UILayer l1 = AddViewLayer( whinitial, "water height");
-    //UILayer l2 = AddViewLayer( whinitial, "infiltration");
+    //UILayer l1 = AddViewLayer( whinitial, "water height");
+    UILayer l2 = AddViewLayer( whinitial, "infiltration");
     //UILayer l3 = AddViewLayer( whinitial, "velocity");
     //UILayer l4 = AddViewLayer( whinitial, "rain");
-    UILayer l5 = AddViewLayer( whinitial, "erosion");
-    UILayer l6 = AddViewLayer( whinitial, "sed");
+    //UILayer l5 = AddViewLayer( whinitial, "erosion");
+    //UILayer l6 = AddViewLayer( whinitial, "sed");
     
     uint counter=0;
     
@@ -94,7 +92,7 @@ void main()
     float settlingv = GetSettlingVelocity(d50);
     float cellsize = 0.05;
     
-    Map slope = Slope(dem.map);
+    Map slope = Slope(dem);
     
     Map rain = dem * 0.0;
     Map raintotal = dem * 0.0;
@@ -154,7 +152,7 @@ void main()
          }
          if(i>=end_overflow_sek) //simulation without water for runoff of the water which stands on the plot
          {
-             rain = dem.map * 0.0;
+             rain = dem * 0.0;
          }
          
          
@@ -237,36 +235,36 @@ void main()
         {
         //hier einen counter im Namen einbauen
             string name = FormatUInt(i);
-          string dem = "_dem.map"; 
-          string dem_ID = name+string(dem);  
+          string dem_str = "_dem.tif"; 
+          string dem_ID = name+string(dem_str);  
           SaveMap(demchangetotal, dem_ID);
-            velx.tif = flowprops[1];
-            vely.tif = flowprops[2];
+          string velx_str = "_velx.tif"; 
+          string velx_ID = name+string(velx_str);  
+          SaveMap(flowprops[1], velx_ID);
+          string vely_str = "_vely.tif"; 
+          string vely_ID = name+string(vely_str);  
+          SaveMap(flowprops[2], vely_ID);
             dem.tif = demchangetotal;
             
              //replay data in map viewer
-            ReplaceViewLayer(l1, flowprops[0]);
-            //ReplaceViewLayer(l2, infil[0]);
+            //ReplaceViewLayer(l1, flowprops[0]);
+            ReplaceViewLayer(l2, infil[0]);
             //ReplaceViewLayer(l3, velo);
             //ReplaceViewLayer(l4, raintotal);
-            ReplaceViewLayer(l5, demchangetotal);
-            ReplaceViewLayer(l6, Sed);          
+            //ReplaceViewLayer(l5, demchangetotal);
+            //ReplaceViewLayer(l6, Sed);          
         }            
         
         //counter for map_iD
         counter++;        
     }
-    
-    
-    
 }
-
 
  
                  
         //save the file      
-       // test.tif = dem;
-       // water.tif = flowprops[0];
+        //test.tif = dem;
+        //water.tif = flowprops[0];
         //rain1.tif = rain;    
         //velocity.tif = sqrt(flowprops[1]* flowprops[1]+flowprops[2]* flowprops[2]);
         
