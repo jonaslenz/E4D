@@ -198,6 +198,12 @@ Anne legt lauffähigen fullswof Ordner ab:
  - kompilierte Exe mit Referenz auf Primärquelle + Version
  - alle Input Daten
  - Projektdatei
+ 
+```{r run_Fullswof}
+setwd("D:\\Projekte\\E4D\\paper_erosion_modeling\\models\\FullSWOF\\")
+system2("FullSWOF_2D_win.exe")
+
+```
 
 ## openLISEM
 
