@@ -2,22 +2,26 @@
 title: Workflow E4D project - working title paper erosion modeling
 journal: "`r rticles::copernicus_journal_abbreviations(journal_name = 'soil')`"
 author:
-  - given_name: Daniel
-    surname: Nüst
-    affiliation: "1, *"
-    email: daniel.nuest@uni-muenster.de
+  - given_name: Jonas
+    surname: Lenz
+    affiliation: "1, 2, *"
+    email: jonas.lenz@iproconsult.com
     corresponding: true
-  - given_name: Josiah
-    surname: Carberry
-    affiliation: 2
-    email: j.carberry@orcid.org
-  - given_name: Markus
-    surname: Konkol
-    affiliation: "1, *"
-  - given_name: Nikolaus
-    surname: Copernicus
+  - given_name: Anette
+    surname: Eltner
+    affiliation: 3
+    email: 
+  - given_name: Lea
+    surname: Epple
+    affiliation: 3
+    email: 
+  - given_name: Anne
+    surname: Bienert
+    affiliation: "3"
+  - given_name: Oliver
+    surname: Grothum
     # authors can have multiple affiliations, which can also be used to mark deceased coauthors
-    affiliation: "3, †"
+    affiliation: "3"
 # If you have more than one corresponding author, add them manually using the following structure (note the commas):
 # Two authors: Daniel Nüst (daniel.nuest@uni-muenster.de) and Josiah Carberry (j.carberry@orcid.org)
 # Three authors or more: Daniel Nüst (daniel.nuest@uni-muenster.de), Josiah Carberry (j.carberry@orcid.org), and Markus Konkol (m.konkol@wwu.de)
