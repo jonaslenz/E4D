@@ -227,13 +227,28 @@ Checken, wie das Script (aktuell per "Pfeil" gestartet) von Kommandozeile gestar
 
 Version 0.2.4 https://sourceforge.net/projects/lisem/files/LISEM%20%28beta%20release%20new%20software%29/Portable/lisem_0.2.4.zip/download
 
-```{r run_LISEM, echo=FALSE}
+```{r run_LISEM}
 ## get instalation path to LISEM
 
 system2("D:\\Projekte\\E4D\\paper_erosion_modeling\\models\\Lisem\\bin\\lisem_app.exe",
-'-x -r "D:\\Projekte\\E4D\\paper_erosion_modeling\\models\\Lisem\\Lisem_skript\\rainfall_sim_200721.script" -d "D:\\Projekte\\E4D\\paper_erosion_modeling\\models\\Lisem\\maps__05cm\\"'
+'-x -r "D:\\Projekte\\E4D\\paper_erosion_modeling\\models\\Lisem\\Lisem_skript\\rainfall_200721_new.script" -d "D:\\Projekte\\E4D\\paper_erosion_modeling\\models\\Lisem\\maps_05\\"', stdout = FALSE
 )
 
+
+```
+
+```{r}
+setwd("D:\\Projekte\\E4D\\paper_erosion_modeling\\models\\Lisem\\maps_05\\")
+lisem_results <- list.files()
+
+velx <- raster::stack(lisem_results[grepl("velx", lisem_results)])
+```
+
+```{r}
+for(z in names(velx))
+{
+  raster::plot(velx[[z]], zlim = c(-0.5,0.5), main = z)
+}
 ```
 
 ## Aktuell erkannte Herausforderungen
