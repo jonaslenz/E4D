@@ -212,6 +212,19 @@ Checken, wie das Script (aktuell per "Pfeil" gestartet) von Kommandozeile gestar
 
 Version 0.2.4 https://sourceforge.net/projects/lisem/files/LISEM%20%28beta%20release%20new%20software%29/Portable/lisem_0.2.4.zip/download
 
+
+
+```{r install_lisem}
+if(!dir.exists("models/Lisem/bin"))
+{
+  download.file("https://downloads.sourceforge.net/project/lisem/LISEM%20%28beta%20release%20new%20software%29/Portable/lisem_0.2.4.zip", destfile = "models/Lisem/lisem0.2.4.zip")
+  unzip("models/Lisem/lisem0.2.4.zip", exdir = "models/Lisem/")
+  unlink("models/Lisem/lisem0.2.4.zip")
+}
+
+```
+
+
 ```{r run_LISEM}
 ## get instalation path to LISEM
 
