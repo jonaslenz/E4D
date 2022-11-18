@@ -166,7 +166,7 @@ void main()
         
         //infiltration
         //Is there a two-Layer Green and Ampt infiltration?
-        //infil = GreenAndAmpt(infil[0], infil[1], SD1,Ksat1,Thetas1, Thetai1, Psi1, timestep);
+        infil = GreenAndAmpt(infil[0], infil[1], SD1,Ksat1,Thetas1, Thetai1, Psi1, timestep);
          
         //altering flowprops[0] with infil[1] after infiltration modeling
         flowprops[0] = infil[1]; 
