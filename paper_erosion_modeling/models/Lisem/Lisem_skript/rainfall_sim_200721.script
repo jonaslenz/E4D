@@ -114,7 +114,7 @@ void main()
         //timestep number
         Print(ToString(i));
         
-        int count = 0;
+  //      int count = 0;  // wird nicht weiter benutzt -> raus?
         
         
         double time = (i*timestep)/(3600.0);// i=1 -> 5/3600 = 0.0013888
@@ -124,8 +124,8 @@ void main()
         int begin_overflow_sek = (begin_overflow_minutes*60)/timestep;
         int end_overflow_sek = (end_overflow_minutes*60)/timestep;
         
-        Print(begin_overflow_sek);
-        Print(end_overflow_sek);
+//        Print(begin_overflow_sek);
+//        Print(end_overflow_sek);
         
          if(i<begin_overflow_sek) //time before overflow is 24 minutes -> (24min*60)/5Sek = 288
          { 
@@ -146,7 +146,7 @@ void main()
                  for(int r=0; r < 1; r++)
                  {
                     rain[r,c] = overflow_intensity/(1000.0*3600.0);    
-                    Print(rain[r,c]);
+              //      Print(rain[r,c]);
                  }             
             } 
          }
@@ -218,7 +218,7 @@ void main()
         Sed=FlowDynamicSuspendedTransport(Sed, dem, manning, flowprops[0], flowprops[1],flowprops[2],timestep);
         
         //Save maps for each timestep 
-        Print("save maps");
+        //Print("save maps");
         //string water_height = "_waterheight.map"; 
         //string water_height_ID = counter+string(water_height);    
         //SaveMap(flowprops[0], water_height_ID);
