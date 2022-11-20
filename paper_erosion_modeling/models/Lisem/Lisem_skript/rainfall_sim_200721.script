@@ -244,7 +244,13 @@ void main()
           string vely_str = "_vely.tif"; 
           string vely_ID = name+string(vely_str);  
           SaveMap(flowprops[2], vely_ID);
-            dem.tif = demchangetotal;
+          string q_str = "_q.tif"; 
+          string q_ID = name+string(q_str);  
+          SaveMap(flowprops[0] * flowprops[2], q_ID); //assuming that waterheight multiplied by velocity in y equals runoff?! 
+          string wh_str = "_wh.tif"; 
+          string wh_ID = name+string(wh_str);  
+          SaveMap(flowprops[0], wh_ID);
+//            dem.tif = demchangetotal;
             
              //replay data in map viewer
             //ReplaceViewLayer(l1, flowprops[0]);
@@ -258,6 +264,7 @@ void main()
         //counter for map_iD
         counter++;        
     }
+  SaveMap(raintotal, "rain_total.tif");
 }
 
  
