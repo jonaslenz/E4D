@@ -250,6 +250,9 @@ void main()
           string wh_str = "_wh.tif"; 
           string wh_ID = name+string(wh_str);  
           SaveMap(flowprops[0], wh_ID);
+          string infil_str = "_infil.tif"; 
+          string infil_ID = name+string(infil_str);  
+          SaveMap(infil[0], infil_ID);
 //            dem.tif = demchangetotal;
             
              //replay data in map viewer
