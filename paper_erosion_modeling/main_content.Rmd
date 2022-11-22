@@ -247,19 +247,45 @@ lisem_results <- list.files()
 velx <- raster::stack(lisem_results[grepl("velx", lisem_results)])
 vely <- raster::stack(lisem_results[grepl("vely", lisem_results)])
 dem <- raster::stack(lisem_results[grepl("dem", lisem_results)])
+infil <- raster::stack(lisem_results[grepl("infil", lisem_results)])
+wh <- raster::stack(lisem_results[grepl("wh", lisem_results)])
+q <- raster::stack(lisem_results[grepl("q", lisem_results)])
+
+rain_total <- raster::raster("rain_total.tif")
+```
+
+```{r check_waterbalance}
+raster::plot(rain_total)
+unique(raster::values(rain_total))
+rain <- sum(raster::values(rain_total))
+rain/100*1000
+#unique(raster::values(rain_total))
+```
+
+```{r get_outflow}
+
+q_steps <- list()
+
+for(z in names(q))
+{
+  raster::plot(q[[z]], main = z)
+  
+  q_steps[[z]] <- sum(q[[z]][29,]) * 5
+}
+plot(unlist(q_steps))
 ```
 
 ```{r}
 for(z in names(velx))
 {
-  raster::plot(velx[[z]], zlim = c(-0.5,0.5), main = z)
+  raster::plot(velx[[z]], main = z)
 }
 ```
 
 ```{r}
-for(z in names(dem))
+for(z in names(wh))
 {
-  raster::plot(dem[[z]], main = z)
+  raster::plot(wh[[z]], main = z)
 }
 ```
 ## Aktuell erkannte Herausforderungen
