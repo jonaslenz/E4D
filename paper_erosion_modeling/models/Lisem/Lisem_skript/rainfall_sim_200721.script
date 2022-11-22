@@ -92,8 +92,6 @@ void main()
     float settlingv = GetSettlingVelocity(d50);
     float cellsize = 0.05;
     
-    Map slope = Slope(dem);
-    
     Map rain = dem * 0.0;
     Map raintotal = dem * 0.0;
     
@@ -104,7 +102,7 @@ void main()
     //do time loop
     //40 min rainfall experiment -> timestep each 5 sek -> i = 480
     float timestep = 5.0; // seconds
-    int duration_experiment_min = 40; // in minutes
+    int duration_experiment_min = 42; // in minutes
     int i_duration = duration_experiment_min * 60.0/timestep;
     
     Print(i_duration);
@@ -113,11 +111,15 @@ void main()
     {
         //timestep number
         Print(ToString(i));
+          
+          // slope needs to be calculated each timestep, as DEM changes through erosion
+          Map slope = Slope(dem);
+
         
   //      int count = 0;  // wird nicht weiter benutzt -> raus?
         
         
-        double time = (i*timestep)/(3600.0);// i=1 -> 5/3600 = 0.0013888
+  //      double time = (i*timestep)/(3600.0);// i=1 -> 5/3600 = 0.0013888         // wird nicht weiter benutzt -> raus?
         float begin_overflow_minutes = 25;
         float end_overflow_minutes = 38;
         
