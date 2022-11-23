@@ -160,12 +160,38 @@ Alle Daten im Fullswof input format, müssen für andere Modelle entsprechend ü
 
 ```{r}
 dgm_xyz <- read.table("models/FullSWOF/Inputs/2021-07-20_sfm_ueberstau1_nachher_trafo_Plotinneres_raster_Mean_0.10_redu_add.txt", sep = " ", header = FALSE, col.names = c("X","Y", "Z"))
+lowest <- min(dgm_xyz$Z)
+highest <- max(dgm_xyz$Z)
+## Add closed and open boundaries to DGM
+lower_boundary <- data.frame(X = unique(dgm_xyz$X), Y = -0.05, Z = lowest-0.05)
+dgm_xyz <- rbind.data.frame(dgm_xyz, lower_boundary)
+upper_boundary <- data.frame(X = unique(dgm_xyz$X), Y = 2.95, Z = highest+1)
+dgm_xyz <- rbind.data.frame(dgm_xyz, upper_boundary)
+
+left_boundary <- data.frame(X = -0.05, Y = unique(dgm_xyz$Y), Z = highest+1)
+dgm_xyz <- rbind.data.frame(dgm_xyz, left_boundary)
+right_boundary <- data.frame(X = 1.15, Y = unique(dgm_xyz$Y), Z = highest+1)
+dgm_xyz <- rbind.data.frame(dgm_xyz, right_boundary)
+
 dgm <- raster::rasterFromXYZ(dgm_xyz )
+crs(dgm) <- 25832
 
 raster::plot(dgm)
 dir.create("models/Lisem/wd")
-raster::writeRaster(dgm, filename = "models/Lisem/wd/dgm.tif")
+raster::writeRaster(dgm, filename = "models/Lisem/wd/dgm.tif", overwrite = TRUE)
 
+rain <- dgm*0+38
+rain[1,] <- 0
+rain[nrow(rain),] <- 0
+rain[,1] <- 0
+rain[,ncol(rain)] <- 0
+raster::plot(rain)
+raster::writeRaster(rain, filename = "models/Lisem/wd/rain.tif", overwrite = TRUE)
+
+overflow <- dgm*0
+overflow[2,2:(ncol(rain)-1)] <- 0.2 * 3600
+raster::plot(overflow)
+raster::writeRaster(overflow, filename = "models/Lisem/wd/overflow.tif", overwrite = TRUE)
 ```
 
 
@@ -270,7 +296,7 @@ for(z in names(q))
 {
   raster::plot(q[[z]], main = z)
   
-  q_steps[[z]] <- sum(q[[z]][29,]) * 5
+  q_steps[[z]] <- sum(q[[z]][nrow(q[[z]])-1,]) * 5
 }
 plot(unlist(q_steps))
 ```

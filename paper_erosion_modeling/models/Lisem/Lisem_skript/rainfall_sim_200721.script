@@ -69,7 +69,7 @@ void main()
     Map SD2 = dem * 0.0 + 1000;
     
     //define constant rainfall -> 38 mm/h and generate a rain.tif
-    rain.tif = dem * 0.0 + 38.0; 
+//    rain.tif = dem * 0.0 + 38.0; 
        
     //flow properties (wh, ux, uy), all values set to "zero", starting with a try plot
     array<Map> flowprops = {whinitial, whinitial * 0.0, whinitial *0.0};
@@ -102,7 +102,7 @@ void main()
     //do time loop
     //40 min rainfall experiment -> timestep each 5 sek -> i = 480
     float timestep = 5.0; // seconds
-    int duration_experiment_min = 42; // in minutes
+    int duration_experiment_min = 50; // in minutes
     int i_duration = duration_experiment_min * 60.0/timestep;
     
     Print(i_duration);
@@ -139,18 +139,8 @@ void main()
          }
          if(i>=begin_overflow_sek && i<end_overflow_sek) //overflow, the uppermost row spends water
          {                  
-             int overflow_intensity = 7000; // is this the correct value??? 7000 mm/h -> intensity calibrated with the collected water 
-             rain = (timestep)*rain.tif/(1000.0*3600.0); //conversion to m/second * (timestep*i)        
+             rain = (timestep)*(rain.tif + overflow.tif)/(1000.0*3600.0); //conversion to m/second * (timestep*i)        
              
-             for(int c=0; c < rain.Cols(); c++)
-             {
-                 //for(int r=1; r < 2; r++)                 
-                 for(int r=0; r < 1; r++)
-                 {
-                    rain[r,c] = overflow_intensity/(1000.0*3600.0);    
-              //      Print(rain[r,c]);
-                 }             
-            } 
          }
          if(i>=end_overflow_sek) //simulation without water for runoff of the water which stands on the plot
          {
