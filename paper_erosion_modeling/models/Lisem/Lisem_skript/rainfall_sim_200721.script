@@ -226,7 +226,7 @@ void main()
         if( i % 25 == 0)
         {
         //hier einen counter im Namen einbauen
-            string name = FormatUInt(i);
+          string name = FormatUInt(i + 100000);
           string dem_str = "_dem.tif"; 
           string dem_ID = name+string(dem_str);  
           SaveMap(demchangetotal, dem_ID);
