@@ -215,24 +215,10 @@ void main()
         //advecction of sediment with water
         Sed=FlowDynamicSuspendedTransport(Sed, dem, manning, flowprops[0], flowprops[1],flowprops[2],timestep);
         
-        //Save maps for each timestep 
-        //Print("save maps");
-        //string water_height = "_waterheight.map"; 
-        //string water_height_ID = counter+string(water_height);    
-        //SaveMap(flowprops[0], water_height_ID);
-        
-        //string velocity = "_velocity.map"; 
-        //string velocity_ID = counter+string(velocity);    
-        //SaveMap(velo, velocity_ID);
-        
-        //string erosion = "_erosion.map"; 
-        //string erosion_ID = counter+string(erosion);    
-        //SaveMap(eros, erosion_ID);
-         
-        if( i % 25 == 0)
+        if( (i*timestep) % 60 == 0)
         {
         //hier einen counter im Namen einbauen
-          string name = FormatUInt(i + 100000);
+          string name = FormatUInt((i*timestep/60) + 100000);
           string dem_str = "_dem.tif"; 
           string dem_ID = name+string(dem_str);  
           SaveMap(demchangetotal, dem_ID);
