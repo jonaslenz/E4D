@@ -48,6 +48,8 @@ Map TransportCapacity(Map height, Map vel, float d50, Map slope)
 void main()
 {
     Map dem = dgm.tif;
+    Map rain_map = rain.tif;
+    Map overflow = overflow.tif;
     
     Map whinitial = dem * 0.0; //empty map
     Map manning = dem * 0.0 + 0.026; //manning surface roughness coefficient
@@ -94,6 +96,7 @@ void main()
     
     Map rain = dem * 0.0;
     Map raintotal = dem * 0.0;
+    Map infiltotal = dem * 0.0;
     
     Map Sed = dem * 0.0;
     Map demchangetotal = dem * 0.0;
@@ -131,7 +134,7 @@ void main()
         
          if(i<begin_overflow_sek) //time before overflow is 24 minutes -> (24min*60)/5Sek = 288
          { 
-              rain = (timestep)*rain.tif/(1000.0*3600.0); 
+              rain = (timestep)*rain_map/(1000.0*3600.0); 
               //ReplaceViewLayer(l4, rain);
               //conversion to m/second: (timestep*i)*rain  -> (timestep*i): cumulated water(rain) 
               //OR 
@@ -139,7 +142,7 @@ void main()
          }
          if(i>=begin_overflow_sek && i<end_overflow_sek) //overflow, the uppermost row spends water
          {                  
-             rain = (timestep)*(rain.tif + overflow.tif)/(1000.0*3600.0); //conversion to m/second * (timestep*i)        
+             rain = (timestep)*(rain_map + overflow)/(1000.0*3600.0); //conversion to m/second * (timestep*i)        
              
          }
          if(i>=end_overflow_sek) //simulation without water for runoff of the water which stands on the plot
@@ -160,6 +163,9 @@ void main()
         //Is there a two-Layer Green and Ampt infiltration?
         infil = GreenAndAmpt(infil[0], infil[1], SD1,Ksat1,Thetas1, Thetai1, Psi1, timestep);
          
+        Map infilstep = flowprops[0] - infil[1];
+        infiltotal += infilstep;
+        
         //altering flowprops[0] with infil[1] after infiltration modeling
         flowprops[0] = infil[1]; 
               
@@ -239,12 +245,15 @@ void main()
           string q_str = "_q.tif"; 
           string q_ID = name+string(q_str);  
           SaveMap(flowprops[0] * flowprops[2], q_ID); //assuming that waterheight multiplied by velocity in y equals runoff?! 
+          string rain_str = "_rain.tif"; 
+          string rain_ID = name+string(rain_str);  
+          SaveMap(raintotal, rain_ID);
           string wh_str = "_wh.tif"; 
           string wh_ID = name+string(wh_str);  
           SaveMap(flowprops[0], wh_ID);
           string infil_str = "_infil.tif"; 
           string infil_ID = name+string(infil_str);  
-          SaveMap(infil[0], infil_ID);
+          SaveMap(infiltotal, infil_ID);
 //            dem.tif = demchangetotal;
             
              //replay data in map viewer
@@ -259,7 +268,6 @@ void main()
         //counter for map_iD
         counter++;        
     }
-  SaveMap(raintotal, "rain_total.tif");
 }
 
  
