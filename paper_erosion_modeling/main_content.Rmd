@@ -203,6 +203,41 @@ all validation data is variable in space within plot boundaries and time within 
 - time series of elevation change (DOD - richtig? und was bedeuted DOD eigentlich)
 - 
 
+```{r get-observations}
+# runoff and sediment concentration
+runoff_sedconc <- read.csv("20210720/table_sampled/21-07-20.txt")
+
+runoff <- runoff_sedconc$Abfluss.ml[148:nrow(runoff_sedconc)] 
+plot(runoff)
+sedconc <- runoff_sedconc$Sedkonz.g.l[148:nrow(runoff_sedconc)] 
+points(sedconc, col = "red")
+
+# elevation change
+## SfM
+
+## from sedconc
+
+# velocities
+## video analysis
+v_ueber3 <- read.table("20210720/velocitiesausdemvideoplot20_07_21/TracksFiltered_PTV_VeloThresh_2075_alle.txt", sep = "\t", header = 1)
+v_ueber <- read.table("20210720/velocitiesausdemvideoplot20_07_21/TracksFiltered_PTV_VeloThresh_2075_mitte.txt", sep = "\t", header = 1)
+v_ueber3 <- rbind.data.frame(v_ueber,v_ueber3)
+v_ueber <- read.table("20210720/velocitiesausdemvideoplot20_07_21/TracksFiltered_PTV_VeloThresh_2075_oben.txt", sep = "\t", header = 1)
+v_ueber3 <- rbind.data.frame(v_ueber,v_ueber3)
+v_ueber <- read.table("20210720/velocitiesausdemvideoplot20_07_21/TracksFiltered_PTV_VeloThresh_2075_unten.txt", sep = "\t", header = 1)
+v_ueber3 <- rbind.data.frame(v_ueber,v_ueber3)
+v_ueber3 <- unique(v_ueber3)
+
+hist(v_ueber3$velo, xlim = c(0,0.3), main = "Observed flow velocity (added runoff)", xlab = "Flow velocity [m/s]")
+
+## manual measurement
+v_ueber3man <- 3/c(13,16,13,13,13,17,12,11,17,12)
+hist(v_ueber3man, add = TRUE, col = "red")
+legend("topright", legend = c("SfM", "Tracer"), fill = c("grey", "red"))
+
+```
+
+
 # Modelierung
 
 ## Randbedingungen
@@ -225,7 +260,7 @@ Anne legt lauffähigen fullswof Ordner ab:
  - alle Input Daten
  - Projektdatei
  
-```{r run_Fullswof}
+```{r run-Fullswof}
 setwd("D:\\Projekte\\E4D\\paper_erosion_modeling\\models\\FullSWOF\\")
 system2("FullSWOF_2D_win.exe")
 
@@ -239,14 +274,7 @@ Anne legt lauffähigen openLisem Ordner im E4D Projektordner ab - analog Fullswo
 
 ## LISEM - Bastians Version
 
-Anne legt lauffähigen Lisem Ordner im E4D Projektordner ab - analog Fullswof.
-Checken, wie das Script (aktuell per "Pfeil" gestartet) von Kommandozeile gestartet wird
-
-Version 0.2.4 https://sourceforge.net/projects/lisem/files/LISEM%20%28beta%20release%20new%20software%29/Portable/lisem_0.2.4.zip/download
-
-
-
-```{r install_lisem}
+```{r install-lisem}
 if(!dir.exists("models/Lisem/bin"))
 {
   download.file("https://downloads.sourceforge.net/project/lisem/LISEM%20%28beta%20release%20new%20software%29/Portable/lisem_0.2.4.zip", destfile = "models/Lisem/lisem0.2.4.zip")
@@ -257,7 +285,7 @@ if(!dir.exists("models/Lisem/bin"))
 ```
 
 
-```{r run_LISEM}
+```{r run-LISEM}
 ## get instalation path to LISEM
 
 system2("D:\\Projekte\\E4D\\paper_erosion_modeling\\models\\Lisem\\bin\\lisem_app.exe",
@@ -266,7 +294,7 @@ system2("D:\\Projekte\\E4D\\paper_erosion_modeling\\models\\Lisem\\bin\\lisem_ap
 
 ```
 
-```{r}
+```{r get-Lisem-results}
 setwd("D:\\Projekte\\E4D\\paper_erosion_modeling\\models\\Lisem\\wd\\")
 lisem_results <- list.files()
 
@@ -277,10 +305,10 @@ infil <- raster::stack(lisem_results[grepl("infil", lisem_results)])
 rain_step <- raster::stack(lisem_results[grepl("_rain", lisem_results)])
 wh <- raster::stack(lisem_results[grepl("wh", lisem_results)])
 q <- raster::stack(lisem_results[grepl("q", lisem_results)])
+conc <- raster::stack(lisem_results[grepl("conc", lisem_results)])
 ```
 
 ```{r get-timesseries}
-
 ts_lisem <- data.frame(minute = 0:49, sum_rain = NA, sum_infil = NA, sum_wh = NA)
 for (i in ts_lisem$minute)
 {
@@ -290,14 +318,65 @@ for (i in ts_lisem$minute)
 }
 
 ts_lisem$runoff <- ts_lisem$sum_rain - ts_lisem$sum_infil - ts_lisem$sum_wh
+ts_lisem$runoff_obs_step <- c(0,runoff/100000,0,0,0,0,0,0,0,0,0,0,0)
+ts_lisem$runoff_obs <- cumsum(ts_lisem$runoff_obs_step)
+ts_lisem$runoff_obs_step <- NULL
 
-plot(ts_lisem$minute, ts_lisem$sum_rain)
+write.csv2(ts_lisem, file = "221126_presentation/runoff.csv")
+```
+
+
+```{r get-timesseries}
+plot(ts_lisem$minute, ts_lisem$sum_rain, type = "l", xlab = "Time [min]", ylab = "Cumulative water volume [m^3/m^2]", main = "")
 lines(ts_lisem$minute, ts_lisem$sum_infil, col = "red")
 lines(ts_lisem$minute, ts_lisem$sum_wh, col = "blue")
 lines(ts_lisem$minute, ts_lisem$sum_infil + ts_lisem$sum_wh, col = "orange")
 
 lines(ts_lisem$minute, ts_lisem$runoff, col = "green")
+points(ts_lisem$minute, ts_lisem$runoff_obs, col = "green")
+legend("topleft", legend = c("cumrain", "runoff", "wh", "infil", "infil+wh", "observed runoff"), col = c("black","green","blue", "red", "orange", "green"), lty = c(1,1,1,1,1,NA), pch = c(NA,NA,NA,NA,NA,1))
+
+
 ```
+
+```{r comp-v}
+v_ueber3sim <- sqrt(vely[["X100027_vely"]]^2 + velx[["X100027_velx"]]^2)
+raster::plot(v_ueber3sim)
+hist(raster::values(v_ueber3sim), ylim = c(0,320), xlim = c(0,0.3), main = "Simulated flow velocity (added runoff)", xlab = "Flow velocity [m/s]")
+#hist(raster::values(v_ueber3sim)[raster::values(v_ueber3sim)>0.005])
+
+hist(v_ueber3$velo, ylim = c(0,320), xlim = c(0,0.3), main = "Observed flow velocity (added runoff)", xlab = "Flow velocity [m/s]")
+hist(v_ueber3man, add = TRUE, col = "red")
+legend("topright", legend = c("SfM", "Tracer"), fill = c("grey", "red"))
+
+dfvelocities <- data.frame(SfM = NA, Tracer = NA, Sim = raster::values(v_ueber3sim))  
+dfvelocities$SfM[1:length(v_ueber3$velo)] <- v_ueber3$velo
+dfvelocities$Tracer[1:length(v_ueber3man)] <- v_ueber3man
+write.csv2(dfvelocities, "221126_presentation/velocities.csv")
+```
+
+```{r comp-sedconc}
+sedconc
+for(z in names(conc))
+{
+  raster::plot(conc[[z]], main = z)
+}
+```
+
+```{r}
+for(z in names(dem))
+{
+  raster::plot(dem[[z]], main = z)
+}
+```
+
+```{r}
+for(z in names(vely))
+{
+  raster::plot(vely[[z]], main = z, zlim = c(0,15))
+}
+```
+
 
 ```{r}
 for(z in names(wh))

@@ -240,6 +240,12 @@ void main()
           string infil_str = "_infil.tif"; 
           string infil_ID = name+string(infil_str);  
           SaveMap(infiltotal, infil_ID);
+
+          Map conc = Sed / max(0.0000001,vol);
+          string conc_str = "_conc.tif"; 
+          string conc_ID = name+string(conc_str);  
+          SaveMap(conc, conc_ID);
+
 //            dem.tif = demchangetotal;
             
              //replay data in map viewer
