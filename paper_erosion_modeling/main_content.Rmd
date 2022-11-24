@@ -279,10 +279,24 @@ wh <- raster::stack(lisem_results[grepl("wh", lisem_results)])
 q <- raster::stack(lisem_results[grepl("q", lisem_results)])
 ```
 
+```{r get-timesseries}
 
+ts_lisem <- data.frame(minute = 0:49, sum_rain = NA, sum_infil = NA, sum_wh = NA)
+for (i in ts_lisem$minute)
 {
+  ts_lisem[ts_lisem$minute == i,"sum_infil"] <- sum(values(infil[[paste0("X",as.character(format(100000+i, scientific = FALSE)),"_infil")]]))
+  ts_lisem[ts_lisem$minute == i,"sum_rain"] <- sum(values(rain_step[[paste0("X",as.character(format(100000+i, scientific = FALSE)),"_rain")]]))
+  ts_lisem[ts_lisem$minute == i,"sum_wh"] <- sum(values(wh[[paste0("X",as.character(format(100000+i, scientific = FALSE)),"_wh")]]))
 }
 
+ts_lisem$runoff <- ts_lisem$sum_rain - ts_lisem$sum_infil - ts_lisem$sum_wh
+
+plot(ts_lisem$minute, ts_lisem$sum_rain)
+lines(ts_lisem$minute, ts_lisem$sum_infil, col = "red")
+lines(ts_lisem$minute, ts_lisem$sum_wh, col = "blue")
+lines(ts_lisem$minute, ts_lisem$sum_infil + ts_lisem$sum_wh, col = "orange")
+
+lines(ts_lisem$minute, ts_lisem$runoff, col = "green")
 ```
 
 ```{r}
