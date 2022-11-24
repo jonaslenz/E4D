@@ -52,24 +52,19 @@ void main()
     Map overflow = overflow.tif;
     
     Map whinitial = dem * 0.0; //empty map
-    Map manning = dem * 0.0 + 0.026; //manning surface roughness coefficient
+    Map manning = dem * 0.0 + 0.0000000026; //manning surface roughness coefficient
     
     //Soil parameters
     
     //wetting front 
     Map WF = dem * 0.0 +0.001; //some initial water depth for the green and ampt model
     
-    Map Psi1 = dem * 0.0 + 0.167; //matric suction
-    Map Psi2 = dem * 0.0 + 0.167;
-    Map Thetai1 = dem * 0.0 + 0.267; //water contect (0-1)
-    Map Thetai2 = dem * 0.0 + 0.267;
-    Map Thetas1 = dem * 0.0 + 0.35; // porosity (0-1)
-    Map Thetas2 = dem * 0.0 + 0.35;
-    Map Ksat1 = dem * 0.0 + 30.0;
-    Map Ksat2 = dem * 0.0 + 20.0;
-    Map SD1 = dem * 0.0 + 300;
-    Map SD2 = dem * 0.0 + 1000;
-    
+    Map Psi1 = dem * 0.0 + 0.0010; //matric suction
+    Map Thetai1 = dem * 0.0 + 0.284; //water contect (0-1)
+    Map Thetas1 = dem * 0.0 + 0.39; // porosity (0-1)
+    Map Ksat1 = dem * 0.0 + 0.000009;
+    Map SD1 = dem * 0.0 + 1;
+
     //define constant rainfall -> 38 mm/h and generate a rain.tif
 //    rain.tif = dem * 0.0 + 38.0; 
        
@@ -92,7 +87,7 @@ void main()
     //settling velocity requires d50 grain size
     float d50 = 0.00005;
     float settlingv = GetSettlingVelocity(d50);
-    float cellsize = 0.05;
+    float cellsize = 0.1;
     
     Map rain = dem * 0.0;
     Map raintotal = dem * 0.0;
@@ -104,7 +99,7 @@ void main()
     
     //do time loop
     //40 min rainfall experiment -> timestep each 5 sek -> i = 480
-    float timestep = 5.0; // seconds
+    float timestep = 0.05; // seconds
     int duration_experiment_min = 50; // in minutes
     int i_duration = duration_experiment_min * 60.0/timestep;
     
